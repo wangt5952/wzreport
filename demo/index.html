@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/wzreport.js"></script>
+    <script type="text/javascript">
+        function loadAndInit(){
+           $.ajax({
+               url: "data/tabledata2.json",
+               type: "GET",
+               dataType: "json",
+               success: function(data) {
+                   $("#tt").html(data.title);
+                   var showData=prepareData(data.colConf,data.content);
+                   showTable(showData,data.colConf);
+                   mergeCell("tblBody",0,0,0,data.colConf);
+               },
+               error: function(a,b,c) {
+                   alert(b + ":" + c);
+               }
+            });
+        }
+    </script>
+</head>
+<body>
+    <p style="text-align: center;font-size: x-large;font-weight: bolder;" id="tt"></p>
+    <table border="1" cellpadding="1px" cellspacing="1px">
+        <thead>
+            <tr>
+                <th rowspan="2">集团名称</th>
+                <th rowspan="2">分类</th>
+                <th rowspan="2">区域公司</th>
+                <th rowspan="2">银行(单位)</th>
+                <th rowspan="2">贷款金额</th>
+                <th rowspan="2">贷款日期</th>
+                <th rowspan="2">约定还款日期</th>
+                <th colspan="3">约定年总成本</th>
+                <th rowspan="2">担保单位/抵押物情况</th>
+                <th rowspan="2">授信期限</th>
+                <th rowspan="2">抵押期限</th>
+                <th rowspan="2">备注</th>
+            </tr>
+            <tr>
+                <th>年综合成本率</th>
+                <th>成本支付形式</th>
+                <th>利息支付时间节点</th>
+            </tr>
+        </thead>
+        <tbody id="tblBody">
+        </tbody>
+    </table>
+</body>
+<script type="text/javascript">
+loadAndInit();
+</script>
+</html>
