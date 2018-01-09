@@ -1,9 +1,10 @@
 /**
  * Version 0.0.2 Copyright (C) 2018
+ * Author:Wang Tao
  * 将接收到的明细数据根据设定计算各统计项，并自动生成统计行，以报表的形式展示
  * 1.接收数据的格式
  * colConf说明
- *     val:列名
+ *     val:列名(数量要和模板中的列数量一致且顺序一致)
  *     type:列类别(G-分组列,需要按该列进行统计;S-明细列,仅循环展示该列数据)
  *          分组列必须在最左侧，一旦遇到非分组列，则后续列均不会再作为分组列进行处理，且大分组在左，小分组在右
  *     fn:统计方法(sum-求该列之和;count-求该列数据数量;max-求该列最大值;min-求该列最小值;avg-求该列平均值;其他-表达式计算;空-无计算)
@@ -65,6 +66,10 @@
  * 3.使用方法
  * 设置标题 $('#tableTitle').html(datas.title);
  * 预览报表 $().displayReport({tblBodyId:"tableBody",tblConf:datas.colConf,tblDetailData:datas.data});
+ * 4.注意事项
+ * a.返回数据中colConf中的元素数量要和模板中的列数量一致且顺序一致；
+ * b.返回数据内colConf中type为G的列为分组列，会根据这些列进行统计，必须在最左侧，一旦遇到type不是G的列，则后续列均不会再作为分组列进行处理，且大分组在左，小分组在右；
+ * c.可以通过报表表头的样式设置来规范报表每列展示的宽度。 
  */
 ;(function(){
     "use strict";
