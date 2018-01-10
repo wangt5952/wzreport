@@ -1,10 +1,11 @@
 /**
- * Version 0.0.2 Copyright (C) 2018
+ * Version 0.0.3 Copyright (C) 2018
  * Author:Wang Tao
  * 将接收到的明细数据根据设定计算各统计项，并自动生成统计行，以报表的形式展示
  * 1.接收数据的格式
  * colConf说明
- *     val:列名(数量要和模板中的列数量一致且顺序一致)
+ *     val:列显示名，对应模板中表头的显示列名(数量要和模板中的列数量一致且顺序一致)
+ *     colName:列物理名，对应SQL查询出来的列名或数据库中的列名
  *     type:列类别(G-分组列,需要按该列进行统计;S-明细列,仅循环展示该列数据)
  *          分组列必须在最左侧，一旦遇到非分组列，则后续列均不会再作为分组列进行处理，且大分组在左，小分组在右
  *     fn:统计方法(sum-求该列之和;count-求该列数据数量;max-求该列最大值;min-求该列最小值;avg-求该列平均值;其他-表达式计算;空-无计算)
@@ -16,30 +17,16 @@
  *     "msg": 结果消息,
  *     "title": "报表标题",
  *     "colConf": [
- *         {"val":A列名,"type":"G","fn":"","merge":true},
- *         {"val":B列名,"type":"G","fn":"","merge":true},
- *         {"val":C列名,"type":"G","fn":"","merge":true},
- *         {"val":D列名,"type":"S","fn":"","merge":false},
- *         {"val":E列名,"type":"S","fn":"sum","merge":false},
- *         {"val":F列名,"type":"S","fn":"","merge":false}
+ *         {"val":A列显示名,"colName":A列物理名,"type":"G","fn":"","merge":true},
+ *         {"val":B列显示名,"colName":B列物理名,"type":"G","fn":"","merge":true},
+ *         {"val":C列显示名,"colName":C列物理名,"type":"G","fn":"","merge":true},
+ *         {"val":D列显示名,"colName":D列物理名,"type":"S","fn":"","merge":false},
+ *         {"val":E列显示名,"colName":E列物理名,"type":"S","fn":"sum","merge":false},
+ *         {"val":F列显示名,"colName":F列物理名,"type":"S","fn":"","merge":false}
  *     ],
  *     "data": [
- *         [
- *             {"val":A列数据1},
- *             {"val":B列数据1},
- *             {"val":C列数据1},
- *             {"val":D列数据1},
- *             {"val":E列数据1},
- *             {"val":F列数据1}
- *         ],
- *         [
- *             {"val":A列数据2},
- *             {"val":B列数据2},
- *             {"val":C列数据2},
- *             {"val":D列数据2},
- *             {"val":E列数据2},
- *             {"val":F列数据2}
- *         ]
+ *         {A列物理名:A列数据1,B列物理名:B列数据1,C列物理名:C列数据1,D列物理名:D列数据1,E列物理名:E列数据1,F列物理名:F列数据1},
+ *         {A列物理名:A列数据2,B列物理名:B列数据2,C列物理名:C列数据2,D列物理名:D列数据2,E列物理名:E列数据2,F列物理名:F列数据2}
  *     ]
  * }
  * 2.报表模板,举例如下
@@ -64,8 +51,7 @@
  *   </tbody>
  * </table>
  * 3.使用方法
- * 设置标题 $('#tableTitle').html(datas.title);
- * 预览报表 $().displayReport({tblBodyId:"tableBody",tblConf:datas.colConf,tblDetailData:datas.data});
+ * 预览报表 $().displayReport({tblTitle:datas.title,tblTitleId:"tableTitle",tblBodyId:"tableBody",tblConf:datas.colConf,tblDetailData:datas.data});
  * 4.注意事项
  * a.返回数据中colConf中的元素数量要和模板中的列数量一致且顺序一致；
  * b.返回数据内colConf中type为G的列为分组列，会根据这些列进行统计，必须在最左侧，一旦遇到type不是G的列，则后续列均不会再作为分组列进行处理，且大分组在左，小分组在右；
@@ -106,9 +92,9 @@
         lastGroupColIdx : -1,
         //判断行数据分组是否变化
         isRowGroupChanged : function(rowIdx){
-            for(var y=0;y<settings.tblDetailData[rowIdx].length;y++){
+            for(var y=0;y<settings.tblConf.length;y++){
                 if("G"==settings.tblConf[y].type){
-                    if(settings.tblDetailData[rowIdx][y].val==settings.tblDetailData[rowIdx-1][y].val){
+                    if(settings.tblDetailData[rowIdx][settings.tblConf[y].colName]==settings.tblDetailData[rowIdx-1][settings.tblConf[y].colName]){
                         continue;
                     }else{
                         return y;
@@ -129,7 +115,7 @@
         //初始化统计行缓存数据
         resetTmpFnDatas : function(idx){
             for(var x=idx+1;x<WZReport.tmpFnDatas.length;x++){
-                WZReport.tmpFnDatas[x]=[];
+                WZReport.tmpFnDatas[x]={};
             }
         },
         //累加合计行数据
@@ -154,19 +140,19 @@
         //计算统计列
         setFnVal : function(fnData,x,y){
             if('sum'==settings.tblConf[y].fn){
-                fnData[y]=WZReport.tmpFnDatas[x][y].sum;
+                fnData[settings.tblConf[y].colName]=WZReport.tmpFnDatas[x][settings.tblConf[y].colName].sum;
             }else if('count'==settings.tblConf[y].fn){
-                fnData[y]=WZReport.tmpFnDatas[x][y].count;
+                fnData[settings.tblConf[y].colName]=WZReport.tmpFnDatas[x][settings.tblConf[y].colName].count;
             }else if('max'==settings.tblConf[y].fn){
-                fnData[y]=WZReport.tmpFnDatas[x][y].max;
+                fnData[settings.tblConf[y].colName]=WZReport.tmpFnDatas[x][settings.tblConf[y].colName].max;
             }else if('min'==settings.tblConf[y].fn){
-                fnData[y]=WZReport.tmpFnDatas[x][y].min;
+                fnData[settings.tblConf[y].colName]=WZReport.tmpFnDatas[x][settings.tblConf[y].colName].min;
             }else if('avg'==settings.tblConf[y].fn){
-                fnData[y]=(WZReport.tmpFnDatas[x][y].sum/WZReport.tmpFnDatas[x][y].count).toFixed(2);
+                fnData[settings.tblConf[y].colName]=(WZReport.tmpFnDatas[x][settings.tblConf[y].colName].sum/WZReport.tmpFnDatas[x][settings.tblConf[y].colName].count).toFixed(2);
             }else if(!WZReport.isEmpty(settings.tblConf[y].fn)){
-                fnData[y]='计算值';
+                fnData[settings.tblConf[y].colName]='计算值';
             }else{
-                fnData[y]='';
+                fnData[settings.tblConf[y].colName]='';
             } 
         },
         //预览步骤一:初始化分组统计用缓存数据及需统计最后一列下标
@@ -176,11 +162,11 @@
 			//将原有页面表格清空
 			$("#"+settings.tblBodyId).html("");
             //增加全数据统计
-            WZReport.tmpFnDatas.push([]);
+            WZReport.tmpFnDatas.push({});
             //每增加一个统计列增加一个缓存行
             for(var i=0;i<settings.tblConf.length;i++){
                 if(settings.tblConf[i].type=='G'){
-                    WZReport.tmpFnDatas.push([]);
+                    WZReport.tmpFnDatas.push({});
                 }else{
                     WZReport.lastGroupColIdx=i-1;
                     break;
@@ -192,26 +178,26 @@
             //整理分组合计列
             for(var i=0;i<settings.tblDetailData.length;i++){
                 //增加一新行
-                var tmpNewRow=[];
+                var tmpNewRow={};
                 //处理第一行数据
                 if(0==i){
-                    for(var j=0;j<settings.tblDetailData[i].length;j++){
+                    for(var j=0;j<settings.tblConf.length;j++){
                         //如果需要根据此列进行统计，则增加统计缓存行
                         if("G"==settings.tblConf[j].type){
-                            tmpNewRow[j]=settings.tblDetailData[i][j].val;
+                            tmpNewRow[settings.tblConf[j].colName]=settings.tblDetailData[i][settings.tblConf[j].colName];
                         }else{
-                            tmpNewRow[j]=settings.tblDetailData[i][j].val;
+                            tmpNewRow[settings.tblConf[j].colName]=settings.tblDetailData[i][settings.tblConf[j].colName];
                             //如果该行需要进行累加，则所有的合计行均进行累加
-                            if(!WZReport.isEmpty(settings.tblConf[j].fn)){
-                                for(var m=WZReport.tmpFnDatas.length-1;m>=0;m--){
-                                    WZReport.tmpFnDatas[m][j]={};
-                                    WZReport.tmpFnDatas[m][j].sum=settings.tblDetailData[i][j].val;
-                                    WZReport.tmpFnDatas[m][j].count=1;
-                                    WZReport.tmpFnDatas[m][j].max=settings.tblDetailData[i][j].val;
-                                    WZReport.tmpFnDatas[m][j].min=settings.tblDetailData[i][j].val;
-                                    WZReport.tmpFnDatas[m][j].avg=settings.tblDetailData[i][j].val;
-                                }
-                            }
+							if(!WZReport.isEmpty(settings.tblConf[j].fn)){
+							    for(var m=WZReport.tmpFnDatas.length-1;m>=0;m--){
+								    WZReport.tmpFnDatas[m][settings.tblConf[j].colName]={};
+								    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].sum=settings.tblDetailData[i][settings.tblConf[j].colName];
+								    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].count=1;
+								    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].max=settings.tblDetailData[i][settings.tblConf[j].colName];
+								    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].min=settings.tblDetailData[i][settings.tblConf[j].colName];
+								    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].avg=settings.tblDetailData[i][settings.tblConf[j].colName];
+								}
+							}
                         }
                     }
                     WZReport.lastTblData.push(tmpNewRow);
@@ -222,37 +208,22 @@
                     if(0<=changedGroupColIdx){
                         //计算合计行
                         for(var v=WZReport.lastGroupColIdx;v>=changedGroupColIdx;v--){
-                            var tmpFnRow=[];
-                            for(var j=0;j<settings.tblDetailData[i].length;j++){
+                            var tmpFnRow={};
+                            for(var j=0;j<settings.tblConf.length;j++){
                                 if(j==v){
-                                    tmpFnRow[j]='小计'; 
+                                    tmpFnRow[settings.tblConf[j].colName]='小计'; 
                                 }else{
                                     if("G"==settings.tblConf[j].type){
                                         if(j<v){
-                                            tmpFnRow[j]=settings.tblDetailData[i-1][j].val;
+                                            tmpFnRow[settings.tblConf[j].colName]=settings.tblDetailData[i-1][settings.tblConf[j].colName];
                                         }else{
-                                            tmpFnRow[j]='';
+                                            tmpFnRow[settings.tblConf[j].colName]='';
                                         }
                                     }else{
-                                        if(WZReport.isEmpty(WZReport.tmpFnDatas[v+1][j])){
-                                            tmpFnRow[j]='';
+                                        if(WZReport.isEmpty(WZReport.tmpFnDatas[v+1][settings.tblConf[j].colName])){
+                                            tmpFnRow[settings.tblConf[j].colName]='';
                                         }else{
                                             WZReport.setFnVal(tmpFnRow,v+1,j);
-//                                            if('sum'==settings.tblConf[j].fn){
-//                                                tmpFnRow[j]=WZReport.tmpFnDatas[v+1][j].sum;
-//                                            }else if('count'==settings.tblConf[j].fn){
-//                                                tmpFnRow[j]=WZReport.tmpFnDatas[v+1][j].count;
-//                                            }else if('max'==settings.tblConf[j].fn){
-//                                                tmpFnRow[j]=WZReport.tmpFnDatas[v+1][j].max;
-//                                            }else if('min'==settings.tblConf[j].fn){
-//                                                tmpFnRow[j]=WZReport.tmpFnDatas[v+1][j].min;
-//                                            }else if('avg'==settings.tblConf[j].fn){
-//                                                tmpFnRow[j]=(WZReport.tmpFnDatas[v+1][j].sum/WZReport.tmpFnDatas[v+1][j].count).toFixed(2);
-//                                            }else if(!WZReport.isEmpty(settings.tblConf[j].fn)){
-//                                                tmpFnRow[j]='计算值';
-//                                            }else{
-//                                                tmpFnRow[j]='';
-//                                            }
                                         }
                                     }
                                 }
@@ -263,17 +234,24 @@
                         WZReport.resetTmpFnDatas(changedGroupColIdx);
                     }
                     //计算非统计项
-                    for(var j=0;j<settings.tblDetailData[i].length;j++){
-                        tmpNewRow[j]=settings.tblDetailData[i][j].val;
-                        for(var m=WZReport.tmpFnDatas.length-1;m>=0;m--){
-                            if(WZReport.isEmpty(WZReport.tmpFnDatas[m][j])){
-                                WZReport.tmpFnDatas[m][j]={};
-                            }
-                            WZReport.tmpFnDatas[m][j].sum=WZReport.add(WZReport.tmpFnDatas[m][j].sum,settings.tblDetailData[i][j].val);
-                            WZReport.tmpFnDatas[m][j].count=WZReport.add(WZReport.tmpFnDatas[m][j].count,1);
-                            WZReport.tmpFnDatas[m][j].max=(WZReport.tmpFnDatas[m][j].max<settings.tblDetailData[i][j].val)?settings.tblDetailData[i][j].val:WZReport.tmpFnDatas[m][j].max;
-                            WZReport.tmpFnDatas[m][j].min=(WZReport.tmpFnDatas[m][j].min>settings.tblDetailData[i][j].val)?settings.tblDetailData[i][j].val:WZReport.tmpFnDatas[m][j].min;
-                            WZReport.tmpFnDatas[m][j].avg=new Number((WZReport.tmpFnDatas[m][j].sum/WZReport.tmpFnDatas[m][j].count).toFixed(2));
+                    for(var j=0;j<settings.tblConf.length;j++){
+						if("G"==settings.tblConf[j].type){
+                            tmpNewRow[settings.tblConf[j].colName]=settings.tblDetailData[i][settings.tblConf[j].colName];
+                        }else{
+                            tmpNewRow[settings.tblConf[j].colName]=settings.tblDetailData[i][settings.tblConf[j].colName];
+                            //如果该行需要进行累加，则所有的合计行均进行累加
+							if(!WZReport.isEmpty(settings.tblConf[j].fn)){
+                                for(var m=WZReport.tmpFnDatas.length-1;m>=0;m--){
+                                    if(WZReport.isEmpty(WZReport.tmpFnDatas[m][settings.tblConf[j].colName])){
+                                        WZReport.tmpFnDatas[m][settings.tblConf[j].colName]={};
+                                    }
+                                    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].sum=WZReport.add(WZReport.tmpFnDatas[m][settings.tblConf[j].colName].sum,settings.tblDetailData[i][settings.tblConf[j].colName]);
+                                    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].count=WZReport.add(WZReport.tmpFnDatas[m][settings.tblConf[j].colName].count,1);
+                                    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].max=(WZReport.tmpFnDatas[m][settings.tblConf[j].colName].max<settings.tblDetailData[i][settings.tblConf[j].colName])?settings.tblDetailData[i][settings.tblConf[j].colName]:WZReport.tmpFnDatas[m][settings.tblConf[j].colName].max;
+                                    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].min=(WZReport.tmpFnDatas[m][settings.tblConf[j].colName].min>settings.tblDetailData[i][settings.tblConf[j].colName])?settings.tblDetailData[i][settings.tblConf[j].colName]:WZReport.tmpFnDatas[m][settings.tblConf[j].colName].min;
+                                    WZReport.tmpFnDatas[m][settings.tblConf[j].colName].avg=new Number((WZReport.tmpFnDatas[m][settings.tblConf[j].colName].sum/WZReport.tmpFnDatas[m][settings.tblConf[j].colName].count).toFixed(2));
+                                }
+							}
                         }
                     }
                     WZReport.lastTblData.push(tmpNewRow);
@@ -281,66 +259,36 @@
             }
             //计算最后的数据的合计及总合计
             for(var x=WZReport.tmpFnDatas.length-1;x>=0;x--){
-                var tmpFnRow=[];
+                var tmpFnRow={};
                 if(0==x){
-                    tmpFnRow[0]='总计';
-                    for(var w=1;w<settings.tblDetailData[settings.tblDetailData.length-1].length;w++){
+                    tmpFnRow[settings.tblConf[0].colName]='总计';
+                    for(var w=1;w<settings.tblConf.length;w++){
                         if("G"==settings.tblConf[w].type){
-                            tmpFnRow[w]='';
+                            tmpFnRow[settings.tblConf[w].colName]='';
                         }else{
-                            if(WZReport.isEmpty(WZReport.tmpFnDatas[x][w])){
-                                tmpFnRow[w]='';
+                            if(WZReport.isEmpty(WZReport.tmpFnDatas[x][settings.tblConf[w].colName])){
+                                tmpFnRow[settings.tblConf[w].colName]='';
                             }else{
                                 WZReport.setFnVal(tmpFnRow,x,w);
-//                                if('sum'==settings.tblConf[w].fn){
-//                                    tmpFnRow[w]=WZReport.tmpFnDatas[x][w].sum;
-//                                }else if('count'==settings.tblConf[w].fn){
-//                                    tmpFnRow[w]=WZReport.tmpFnDatas[x][w].count;
-//                                }else if('max'==settings.tblConf[w].fn){
-//                                    tmpFnRow[w]=WZReport.tmpFnDatas[x][w].max;
-//                                }else if('min'==settings.tblConf[w].fn){
-//                                    tmpFnRow[w]=WZReport.tmpFnDatas[x][w].min;
-//                                }else if('avg'==settings.tblConf[w].fn){
-//                                    tmpFnRow[w]=(WZReport.tmpFnDatas[x][w].sum/WZReport.tmpFnDatas[x][w].count).toFixed(2);
-//                                }else if(!WZReport.isEmpty(settings.tblConf[w].fn)){
-//                                    tmpFnRow[w]='计算值';
-//                                }else{
-//                                    tmpFnRow[w]='';
-//                                }
                             }
                         }
                     }
                 }else{
-                    for(var w=0;w<settings.tblDetailData[settings.tblDetailData.length-1].length;w++){
+                    for(var w=0;w<settings.tblConf.length;w++){
                         if(w==x-1){
-                            tmpFnRow[w]='小计';
+                            tmpFnRow[settings.tblConf[w].colName]='小计';
                         }else{
                             if("G"==settings.tblConf[w].type){
                                 if(w<(x-1)){
-                                    tmpFnRow[w]=settings.tblDetailData[settings.tblDetailData.length-1][w].val;
+                                    tmpFnRow[settings.tblConf[w].colName]=settings.tblDetailData[settings.tblDetailData.length-1][settings.tblConf[w].colName];
                                 }else{
-                                    tmpFnRow[w]='';
+                                    tmpFnRow[settings.tblConf[w].colName]='';
                                 }
                             }else{
-                                if(WZReport.isEmpty(WZReport.tmpFnDatas[x][w])){
-                                    tmpFnRow[w]='';
+                                if(WZReport.isEmpty(WZReport.tmpFnDatas[x][settings.tblConf[w].colName])){
+                                    tmpFnRow[settings.tblConf[w].colName]='';
                                 }else{
                                     WZReport.setFnVal(tmpFnRow,x,w);
-//                                    if('sum'==settings.tblConf[w].fn){
-//                                        tmpFnRow[w]=WZReport.tmpFnDatas[x][w].sum;
-//                                    }else if('count'==settings.tblConf[w].fn){
-//                                        tmpFnRow[w]=WZReport.tmpFnDatas[x][w].count;
-//                                    }else if('max'==settings.tblConf[w].fn){
-//                                        tmpFnRow[w]=WZReport.tmpFnDatas[x][w].max;
-//                                    }else if('min'==settings.tblConf[w].fn){
-//                                        tmpFnRow[w]=WZReport.tmpFnDatas[x][w].min;
-//                                    }else if('avg'==settings.tblConf[w].fn){
-//                                        tmpFnRow[w]=(WZReport.tmpFnDatas[x][w].sum/WZReport.tmpFnDatas[x][w].count).toFixed(2);
-//                                    }else if(!WZReport.isEmpty(settings.tblConf[w].fn)){
-//                                        tmpFnRow[w]='计算值';
-//                                    }else{
-//                                        tmpFnRow[w]='';
-//                                    }
                                 }
                             }
                         }
@@ -354,8 +302,8 @@
             var tblStr='';
             for(var i=0;i<WZReport.lastTblData.length;i++){
                 tblStr+='<tr>';
-                for(var j=0;j<WZReport.lastTblData[i].length;j++){
-                    tblStr+='<td>'+WZReport.lastTblData[i][j]+'</td>';
+                for(var j=0;j<settings.tblConf.length;j++){
+                    tblStr+='<td>'+WZReport.lastTblData[i][settings.tblConf[j].colName]+'</td>';
                 }
                 tblStr+='</tr>';
             }
