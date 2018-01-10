@@ -64,8 +64,10 @@ var datas={
 </table>
 ```
 3.使用方法
-* 预览报表 $().displayReport({tblTitle:datas.title,tblTitleId:"tableTitle",tblBodyId:"tableBody",tblConf:datas.colConf,tblDetailData:datas.data});
-
+* 预览报表 
+```bash
+$().displayReport({tblTitle:datas.title,tblTitleId:"tableTitle",tblBodyId:"tableBody",tblConf:datas.colConf,tblDetailData:datas.data});
+```
 ## Pay attention to
 * 返回数据中colConf中的元素数量要和模板中的列数量一致且顺序一致；
 * 返回数据内colConf中type为G的列为分组列，会根据这些列进行统计，必须在最左侧，一旦遇到type不是G的列，则后续列均不会再作为分组列进行处理，且大分组在左，小分组在右；
