@@ -75,6 +75,8 @@
     "use strict";
     //默认设定
     var defaults={
+		tblTitle:"", //报表标题
+		tblTitleId:"", //报表标题标签ID
         tblBodyId:"", //<tbody>标签的ID
         tblConf:[], //列设定
         tblDetailData:[] //明细数据行
@@ -169,6 +171,10 @@
         },
         //预览步骤一:初始化分组统计用缓存数据及需统计最后一列下标
         init : function(){
+			//设置报表标题
+			$("#"+settings.tblTitleId).html(settings.tblTitle);
+			//将原有页面表格清空
+			$("#"+settings.tblBodyId).html("");
             //增加全数据统计
             WZReport.tmpFnDatas.push([]);
             //每增加一个统计列增加一个缓存行

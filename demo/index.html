@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <title>报表展示样例</title>
     <script src="../lib/jquery.min.js"></script>
-    <script src="../wzreport.js"></script>
-    <!-- <script src="../wzreport.min.js"></script> -->
+    <!-- <script src="../wzreport.js"></script> -->
+    <script src="../wzreport.min.js"></script>
     <script type="text/javascript">
         var jsonData={
           "code": 200,
@@ -127,8 +127,7 @@
           ]
         };
         function loadAndInit(){
-            $("#tt").html(jsonData.title);
-            $().displayReport({tblBodyId:"tblBody",tblConf:jsonData.colConf,tblDetailData:jsonData.content});
+            $().displayReport({tblTitle:jsonData.title,tblTitleId:"tt",tblBodyId:"tblBody",tblConf:jsonData.colConf,tblDetailData:jsonData.content});
         }
     </script>
 </head>
