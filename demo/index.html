@@ -2,32 +2,143 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title></title>
-    <script src="./js/jquery.min.js"></script>
-    <script src="./js/wzreport.js"></script>
+    <title>报表展示样例</title>
+    <script src="../lib/jquery.min.js"></script>
+    <script src="../wzreport.js"></script>
+    <!-- <script src="../wzreport.min.js"></script> -->
     <script type="text/javascript">
+        var jsonData={
+          "code": 200,
+          "msg": "成功",
+          "title": "某集团融资情况表",
+          "colConf": [
+                {"val":"集团名称","type":"G","fn":"","merge":true},
+                {"val":"分类","type":"G","fn":"","merge":true},
+                {"val":"区域公司","type":"G","fn":"","merge":true},
+                {"val":"银行(单位)","type":"S","fn":"","merge":false},
+                {"val":"贷款金额","type":"S","fn":"sum","merge":false},
+                {"val":"贷款日期","type":"S","fn":"","merge":false},
+                {"val":"约定还款日期","type":"S","fn":"","merge":false},
+                {"val":"年综合成本率","type":"S","fn":"","merge":false},
+                {"val":"成本支付形式","type":"S","fn":"","merge":false},
+                {"val":"利息支付时间节点","type":"S","fn":"","merge":false},
+                {"val":"担保单位/抵押物情况","type":"S","fn":"","merge":false},
+                {"val":"授信期限","type":"S","fn":"","merge":false},
+                {"val":"抵押期限","type":"S","fn":"","merge":false},
+                {"val":"备注","type":"S","fn":"","merge":true}
+          ],
+          "content": [
+            [
+                {"val":"A集团"},
+                {"val":"金融机构"},
+                {"val":"A公司"},
+                {"val":"A单位"},
+                {"val":100},
+                {"val":"2017-01-01"},
+                {"val":"2018-01-01"},
+                {"val":"10%"},
+                {"val":""},
+                {"val":"2017-12-31"},
+                {"val":"无"},
+                {"val":"1年"},
+                {"val":"1年"},
+                {"val":"内部人员推荐"}
+            ],
+            [
+                {"val":"A集团"},
+                {"val":"金融机构"},
+                {"val":"A公司"},
+                {"val":"B单位"},
+                {"val":100},
+                {"val":"2017-02-01"},
+                {"val":"2018-02-01"},
+                {"val":"10%"},
+                {"val":""},
+                {"val":"2017-12-31"},
+                {"val":"无"},
+                {"val":"1年"},
+                {"val":"1年"},
+                {"val":"内部人员推荐"}
+            ],
+            [
+                {"val":"A集团"},
+                {"val":"金融机构"},
+                {"val":"B公司"},
+                {"val":"A单位"},
+                {"val":100},
+                {"val":"2017-03-01"},
+                {"val":"2018-03-01"},
+                {"val":"10%"},
+                {"val":""},
+                {"val":"2017-12-31"},
+                {"val":"无"},
+                {"val":"1年"},
+                {"val":"1年"},
+                {"val":""}
+            ],
+            [
+                {"val":"A集团"},
+                {"val":"员工"},
+                {"val":"B公司"},
+                {"val":"张三"},
+                {"val":100},
+                {"val":"2017-04-01"},
+                {"val":"2018-04-01"},
+                {"val":"10%"},
+                {"val":""},
+                {"val":"2017-12-31"},
+                {"val":"无"},
+                {"val":"1年"},
+                {"val":"1年"},
+                {"val":""}
+            ],
+            [
+                {"val":"A集团"},
+                {"val":"员工"},
+                {"val":"B公司"},
+                {"val":"李四"},
+                {"val":100},
+                {"val":"2017-05-01"},
+                {"val":"2018-05-01"},
+                {"val":"10%"},
+                {"val":""},
+                {"val":"2017-12-31"},
+                {"val":"无"},
+                {"val":"1年"},
+                {"val":"1年"},
+                {"val":""}
+            ],
+            [
+                {"val":"B集团"},
+                {"val":"员工"},
+                {"val":"C公司"},
+                {"val":"王五"},
+                {"val":200},
+                {"val":"2017-06-01"},
+                {"val":"2018-06-01"},
+                {"val":"10%"},
+                {"val":""},
+                {"val":"2017-12-31"},
+                {"val":"无"},
+                {"val":"1年"},
+                {"val":"1年"},
+                {"val":""}
+            ]
+          ]
+        };
         function loadAndInit(){
-           $.ajax({
-               url: "data/tabledata2.json",
-               type: "GET",
-               dataType: "json",
-               success: function(data) {
-                   $("#tt").html(data.title);
-                   var showData=prepareData(data.colConf,data.content);
-                   showTable(showData,data.colConf);
-                   mergeCell("tblBody",0,0,0,data.colConf);
-               },
-               error: function(a,b,c) {
-                   alert(b + ":" + c);
-               }
-            });
+            $("#tt").html(jsonData.title);
+            $().displayReport({tblBodyId:"tblBody",tblConf:jsonData.colConf,tblDetailData:jsonData.content});
         }
     </script>
 </head>
 <body>
-    <p style="text-align: center;font-size: x-large;font-weight: bolder;" id="tt"></p>
-    <table border="1" cellpadding="1px" cellspacing="1px">
+    <table id="tblDanbao" border="1" cellpadding="0px" cellspacing="0px" style="text-align: center;padding: 0px;margin: 0px;border-color: #000;border-width: 1px;">
         <thead>
+            <tr>
+                <td colspan="14" style="text-align: center;font-size: 2em;font-weight: bolder;" id="tt">
+                </td>
+            </tr>
             <tr>
                 <th rowspan="2">集团名称</th>
                 <th rowspan="2">分类</th>
